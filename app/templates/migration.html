@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>源列改名迁移 · 分群视图同步</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='migration.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <nav class="topnav">
+    <a class="nav-link" href="/">字段溯源</a>
+    <a class="nav-link active" href="/migration">改名迁移</a>
+  </nav>
+  <h1>源列改名迁移 · 分群视图批量同步</h1>
+  <p class="subtitle">
+    选择源表、旧列与新列，先预览全部具名视图的新 SQL（沿用现有 SQL 方言）；
+    仅改写实际绑定到目标源列的引用，字符串字面量、其他表/CTE 同名列、
+    嵌套 CTE 遮蔽均不误改。新名冲突或任一视图分析失败将整批拒绝；
+    确认时在单事务内一起保存源表说明与全部视图，失败或中断不留半迁移。
+  </p>
+</header>
+
+<main class="migration-layout">
+  <!-- 左栏：迁移操作 -->
+  <section class="panel">
+    <div class="section-title">1. 选择改名目标</div>
+    <div class="form-grid">
+      <div class="field">
+        <label for="sel-table">源表</label>
+        <select id="sel-table"></select>
+      </div>
+      <div class="field">
+        <label for="sel-old">旧列名</label>
+        <select id="sel-old"></select>
+      </div>
+      <div class="field">
+        <label for="inp-new">新列名（标识符）</label>
+        <input id="inp-new" type="text" spellcheck="false" placeholder="例如 phone_no">
+      </div>
+    </div>
+    <div class="actions">
+      <button id="btn-preview" type="button">预览全部视图新 SQL</button>
+      <button id="btn-confirm" type="button" class="primary-strong" disabled>确认并整批保存</button>
+    </div>
+    <div id="mig-status" class="status"></div>
+    <div id="mig-error" class="error-box" hidden></div>
+    <div id="mig-warn" class="warn-box" hidden></div>
+
+    <div class="section-title" style="margin-top:18px">2. 源表结构说明（可编辑保存）</div>
+    <div class="field">
+      <textarea id="schema-edit" spellcheck="false"></textarea>
+    </div>
+    <div class="actions">
+      <button id="btn-save-schema" type="button" class="secondary">保存源表说明</button>
+    </div>
+
+    <div class="section-title" style="margin-top:18px">3. 具名视图（可编辑 / 新增）</div>
+    <div id="view-list" class="view-list"></div>
+    <div class="actions">
+      <button id="btn-new-view" type="button" class="secondary">+ 新增视图</button>
+    </div>
+
+    <div class="section-title" style="margin-top:18px">迁移历史（重启保留）</div>
+    <div id="history-list" class="history-list"></div>
+  </section>
+
+  <!-- 右栏：预览结果 -->
+  <section class="panel">
+    <div class="section-title">预览结果：各视图改名前后对照</div>
+    <div id="preview-meta" class="preview-meta empty-note">
+      尚未预览。选择改名目标后点击「预览全部视图新 SQL」。
+    </div>
+    <div id="preview-result"></div>
+  </section>
+</main>
+
+<!-- 视图编辑弹窗 -->
+<div id="modal-mask" class="modal-mask" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <span id="modal-title">编辑视图</span>
+      <button id="modal-close" type="button" class="icon-btn" aria-label="关闭">×</button>
+    </div>
+    <div class="field">
+      <label for="modal-name">视图名（唯一标识符）</label>
+      <input id="modal-name" type="text" spellcheck="false">
+    </div>
+    <div class="field">
+      <label for="modal-desc">说明</label>
+      <input id="modal-desc" type="text" spellcheck="false">
+    </div>
+    <div class="field">
+      <label for="modal-sql">视图 SQL（仅允许引用源表或自身 CTE，保存前自动溯源校验）</label>
+      <textarea id="modal-sql" spellcheck="false" style="min-height:280px"></textarea>
+    </div>
+    <div id="modal-error" class="error-box" hidden></div>
+    <div class="actions" style="justify-content:flex-end">
+      <button id="modal-delete" type="button" class="danger">删除</button>
+      <button id="modal-save" type="button">保存视图</button>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='migration.js') }}"></script>
+</body>
+</html>

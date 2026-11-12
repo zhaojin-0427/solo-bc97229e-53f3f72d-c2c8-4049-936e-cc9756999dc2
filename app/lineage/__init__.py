@@ -2,5 +2,6 @@
 
 from .analyzer import analyze
 from .errors import LineageError
+from .rename import plan_rename
 
-__all__ = ["analyze", "LineageError"]
+__all__ = ["analyze", "plan_rename", "LineageError"]
